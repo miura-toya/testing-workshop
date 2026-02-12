@@ -1,0 +1,20 @@
+[project]
+name = "testing-workshop"
+version = "0.1.0"
+description = "自動テストに関する社内勉強会用の資料"
+readme = "README.md"
+requires-python = ">=3.14.0"
+dependencies = [
+    "fastapi>=0.115.0",
+    "httpx>=0.28.0",
+    "pymysql>=1.1.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.0",
+]
