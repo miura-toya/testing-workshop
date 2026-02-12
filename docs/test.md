@@ -15,7 +15,7 @@
 
 
 ## 自動テスト
-一般的に自動テストは単体テスト（UT）、統合テスト（IT）、E2Eテスト（E2E）に分類されます。
+一般的にソフトウェアのテストは単体テスト（UT）、統合テスト（IT）、E2Eテスト（E2E）に分類されます。
 
 それぞれの定義には解釈の余地があるので、プロジェクトやチームで各テスト工程の対象を決めておくと良いです。
 
@@ -27,8 +27,8 @@
   - 例：サービスクラスやドメインオブジェクトのビジネスロジックをテスト対象とする。
 
 ### 統合テスト
-  - 複数のコンポーネントや外部システムとの連携を含めてテストする
-  - 本勉強会では、単体テストに該当しないテストは全てここに分類する
+  - 単体テストに該当しないテスト
+  - DBやファイルシステム、Web APIなどとの連携をした状態でテストする
   - 例：コントローラやサービスクラスなどをテスト対象とし、テスト用のDBとしてDockerコンテナを用いる。
 
 ### E2Eテスト
@@ -39,7 +39,7 @@
 ## なぜテストコードを書くのか
 - 退行を防ぐ
   - テストコードがない場合、コードの変更やバージョンアップのたびに手動でテストすることを強いられます。これはヒューマンエラーによる見落としや重大なバグを誘発します。チーム開発やコードベースが大きくなるほど顕著に現れます。
-  - 上記の問題はテストコードで解決できます。テストコードをCIに組み込めば、コードが変更されるたびに自動でテストが実行されます。
+  - 上記の問題はテストコードで解決できます。特にCIで自動化されたテストコードは、コードが変更されるたびに自動でテストケースを実行してくれます。
 
 - 仕様がコードベースで表現される
   - テストコードで仕様を検証していれば、「ドキュメントが古くて仕様が分からない」「実装した人しか仕様が分からない」という問題を防ぐことができます。
@@ -58,7 +58,7 @@
 
 - なぜふるまいを検証するのが良いか
   - テストの信頼性向上
-    - 実装の詳細を検証していると、**リファクタリングしただけでテストが壊れる**（ふるまいは変わっていないのに失敗する）問題が起きます。逆に、実装の内部状態だけ見ていると**ふるまいのバグを見逃す**リスクもあります。どちらもテストの信頼性を下げ、テストが嘘をつくようになる状態です。
+    - テストが「プライベート変数の状態」「プライベート関数が呼ばれたか」を検証していると、偽陰性、偽陽性を引き起こし、テストの信頼性を下げてしまいます。つまり、テストが嘘をつくようになる状態です。
     - テスト対象のふるまいが変わったときだけ警告してくれることが、テストの信頼性を上げてくれます。
   - テストの可読性向上
     - 例えば、非エンジニアからすれば「プライベート変数の状態」「プライベート関数が呼ばれたか」といった実装の詳細は知らなくて良いことです。一方、ふるまいは仕様に関わるため、非エンジニアが見ても検証内容を把握することができます。
@@ -77,33 +77,22 @@
     /--------------\
 ```
 
-ビジネスロジックが少ない単純なCRUDなどの場合は単体テストで検証することが少ないので、単体テスト <= 統合テスト となることもあります。
+ビジネスロジックが少ない単純なCRUDなどの場合は単体テストで検証することが少ないので、単体テスト <= 統合テスト で十分でしょう。
 
-```
-       /\
-      /E2E\       ← 少ない
-     /------\
-    /   IT   \    ← 多い
-    \--------/
-     \  UT  /     ← 少ない
-      \    /
-       \/
-```
-
-このように、テストの割合はその機能のビジネスロジックの複雑さや重要度によって検討するのが良いと思います。
+このように、どの機能にどの割合でテストを書くかはドメインの複雑さや重要度に応じて検討します。
 
 ## テストファースト
 実装よりも先にテストコードを書くことをテストファーストと言います。
 
-経験上、実装した後にテストコードを書くと、「今の実装のままテストを通すこと」に集中してしまい、正しい振る舞いかどうかを考えなくなりがちです。テストファーストにすることで、まず仕様（正しい振る舞い）を定義してから実装に入れるようになります。また、自分がそのコードの最初の利用者になるため、使いやすいインターフェース設計が自然とできるようになります。
+経験上、実装した後にテストコードを書くと、「今の実装のままテストを通すこと」に集中してしまい、正しい振る舞いかどうかを考えなくなりがちです。テストファーストにすることで、まず仕様（正しい振る舞い）を定義してから実装に入れるようになります。
 
 ### テスト駆動開発（TDD）
 Kent Beck さんが考案した、テストファーストを取り入れた開発手法です。
 
 1. テストケースをTODOリストとして書き出す
-2. その中から1つテストを書く → 失敗を確認する（**RED**）
-3. テストが通る最小限の実装をする（**GREEN**）
-4. 必要に応じてリファクタリングする（**REFACTOR**）
+2. その中から1つテストを書く
+3. テストがGREENになるまで実装する
+4. 必要に応じてリファクタリング
 5. 2に戻る
 
 ## ハンズオン
@@ -130,7 +119,7 @@ TDDでREST APIを実装してみましょう。
 | パス | `/quotes` |
 | リクエストボディ | `{"customer_name": "田中太郎", "plan": "standard", "months": 12}` |
 | 正常レスポンス（201） | `{"id": 1, "customer_name": "田中太郎", "plan": "standard", "months": 12, "monthly_price": 1980, "discount_rate": 8, "total_price": 21859}` |
-| 異常系（クライアントエラー） | 入力値が不正な場合は `422 Unprocessable Entity` を返す |
+| 異常系（クライアントエラー） | 入力値が不正な場合は `400 Bad Request` を返す |
 | 異常系（システムエラー） | サーバー内部でエラーが発生した場合は `500 Internal Server Error` を返す |
 
 技術スタック: Python / FastAPI / pytest / MySQL
@@ -158,7 +147,6 @@ make setup
 | `sql/schema.sql` | quotesテーブルのDDL |
 | `src/database.py` | DB接続の取得・解放（FastAPIの依存性注入用） |
 | `src/main.py` | FastAPIアプリとエンドポイントの雛形（中身は未実装） |
-| `tests/conftest.py` | IT用フィクスチャ（テーブル作成・クリーンアップ） |
 | `.github/workflows/test.yml` | pushトリガーでpytestを自動実行するCI |
 
 ### 実装
@@ -201,56 +189,7 @@ class TestQuote:
         assert quote.monthly_price == expected
 ```
 
-見積もりを表す `Quote` が必要なので、プランを渡して生成します。この時点ではプランに応じた月額料金だけを検証するので、月数はまだ不要です。
-
-```python
-import pytest
-
-from src.quote import Quote
-
-
-class TestQuote:
-    @pytest.mark.parametrize("plan, expected", [("basic", 980), ("standard", 1980), ("premium", 4980)])
-    def test_プランに応じた月額料金が正しいこと(self, plan, expected):
-        quote = Quote(plan=plan)
-        assert quote.monthly_price == expected
-```
-
-##### RED
-
-テストを実行して失敗することを確認します。まだ何も実装していないので `ModuleNotFoundError` が出るはずです。
-
-```bash
-uv run pytest tests/test_quote.py
-```
-
-##### GREEN
-
-`src/quote.py` に `Quote` クラスを実装してテストが通るようにしましょう。
-テストを通すために必要な最小限だけ実装します。
-
-```python
-class Quote:
-    def __init__(self, plan: str):
-        if plan == "basic":
-            self._monthly_price = 980
-        elif plan == "standard":
-            self._monthly_price = 1980
-        elif plan == "premium":
-            self._monthly_price = 4980
-
-    @property
-    def monthly_price(self) -> int:
-        return self._monthly_price
-```
-
-テストが通るか確認しましょう。
-
-```bash
-uv run pytest tests/test_quote.py
-```
-
-GREENになりました。次はTODOリストの「12ヶ月以上24ヶ月未満は8%割引されること」を検証します。standardプラン・20ヶ月のケースでテストを追加しましょう。割引には月数が必要なので、ここで初めて `months` を導入します。`Quote` が `months` を受け取るようになるため、月額料金のテストにも `months=1` を渡します。
+見積もりを表す `Quote` が必要なので、プランと月数を渡して生成します。
 
 ```python
 import pytest
@@ -263,24 +202,16 @@ class TestQuote:
     def test_プランに応じた月額料金が正しいこと(self, plan, expected):
         quote = Quote(plan=plan, months=1)
         assert quote.monthly_price == expected
-
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
-        quote = Quote(plan="standard", months=20)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 36432
 ```
 
-##### RED
+テストを実行して失敗することを確認します。まだ何も実装していないので `ModuleNotFoundError` が出るはずです。
 
 ```bash
 uv run pytest tests/test_quote.py
 ```
 
-REDになりました。`months` 引数も `discount_rate` も `total_price` もまだ実装されていないからです。
-
-##### GREEN
-
-割引の判定と合計金額の計算を `Quote` に追加しましょう。`months` を受け取るようにし、`plan`/`months` もプロパティとして公開します（後のAPI実装で使います）。このテストを通すために必要な最小限の割引ロジックだけ実装します。
+`src/quote.py` に `Quote` クラスを実装してテストが通るようにしましょう。
+まずはこのテストを通すための最小限の実装をします。
 
 ```python
 class Quote:
@@ -295,13 +226,6 @@ class Quote:
         self._plan = plan
         self._months = months
 
-        if 12 <= months < 24:
-            self._discount_rate = 8
-        else:
-            self._discount_rate = 0
-
-        self._total_price = self._monthly_price * months * (100 - self._discount_rate) // 100
-
     @property
     def plan(self) -> str:
         return self._plan
@@ -313,96 +237,28 @@ class Quote:
     @property
     def monthly_price(self) -> int:
         return self._monthly_price
-
-    @property
-    def discount_rate(self) -> int:
-        return self._discount_rate
-
-    @property
-    def total_price(self) -> int:
-        return self._total_price
 ```
+
+テストが通るか確認しましょう。
 
 ```bash
 uv run pytest tests/test_quote.py
 ```
 
-GREENになりました。`total_price` は `/ 100` で `float` になりますが、このテストケース（1,980 × 20 × 92 / 100 = 36,432.0）では割り切れるため問題ありません。端数が出るケースは後のテストで対処します。
-
-次はTODOリストの「12ヶ月未満は割引なしであること」を検証します。
+GREENになりました。次はTODOリストの「12ヶ月以上24ヶ月未満は8%割引されること」を検証します。standardプラン・20ヶ月のケースでテストを追加しましょう。
 
 ```python
-import pytest
-
-from src.quote import Quote
-
-
-class TestQuote:
-    @pytest.mark.parametrize("plan, expected", [("basic", 980), ("standard", 1980), ("premium", 4980)])
-    def test_プランに応じた月額料金が正しいこと(self, plan, expected):
-        quote = Quote(plan=plan, months=1)
-        assert quote.monthly_price == expected
-
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
+    def test_standardプラン20ヶ月の場合8パーセント割引されること(self):
         quote = Quote(plan="standard", months=20)
         assert quote.discount_rate == 8
         assert quote.total_price == 36432
-
-    def test_12ヶ月未満は割引なしであること(self):
-        quote = Quote(plan="standard", months=1)
-        assert quote.discount_rate == 0
-        assert quote.total_price == 1980
 ```
-
-##### GREEN
 
 ```bash
 uv run pytest tests/test_quote.py
 ```
 
-現在の実装で12ヶ月未満は `else` 節で割引率0%になるため、追加の実装なしでGREENになります。
-
-次はTODOリストの「24ヶ月以上は14%割引されること」を検証します。
-
-```python
-import pytest
-
-from src.quote import Quote
-
-
-class TestQuote:
-    @pytest.mark.parametrize("plan, expected", [("basic", 980), ("standard", 1980), ("premium", 4980)])
-    def test_プランに応じた月額料金が正しいこと(self, plan, expected):
-        quote = Quote(plan=plan, months=1)
-        assert quote.monthly_price == expected
-
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
-        quote = Quote(plan="standard", months=20)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 36432
-
-    def test_12ヶ月未満は割引なしであること(self):
-        quote = Quote(plan="standard", months=1)
-        assert quote.discount_rate == 0
-        assert quote.total_price == 1980
-
-    def test_24ヶ月以上は14パーセント割引されること(self):
-        quote = Quote(plan="standard", months=24)
-        assert quote.discount_rate == 14
-        assert quote.total_price == 40867
-```
-
-##### RED
-
-```bash
-uv run pytest tests/test_quote.py
-```
-
-24ヶ月以上の14%割引がまだ実装されていません。また、`total_price` の計算で `/ 100` が小数を返すため（1,980 × 24 × 86 ÷ 100 = 40,867.2）、整数の期待値と一致しません。
-
-##### GREEN
-
-`src/quote.py` を以下のように書き換えて、24ヶ月以上の割引ロジックを追加しましょう。
+REDになりました。`discount_rate` や `total_price` がまだ実装されていないからです。割引の判定と合計金額の計算を `Quote` に追加しましょう。
 
 ```python
 class Quote:
@@ -424,82 +280,16 @@ class Quote:
         else:
             self._discount_rate = 0
 
-        self._total_price = self._monthly_price * months * (100 - self._discount_rate) // 100
+        self._total_price = self._monthly_price * months * (100 - self._discount_rate) / 100
 
-    @property
-    def plan(self) -> str:
-        return self._plan
-
-    @property
-    def months(self) -> int:
-        return self._months
-
-    @property
-    def monthly_price(self) -> int:
-        return self._monthly_price
-
-    @property
-    def discount_rate(self) -> int:
-        return self._discount_rate
-
-    @property
-    def total_price(self) -> int:
-        return self._total_price
+    # ...（既存のプロパティに加え discount_rate, total_price を追加）
 ```
 
 ```bash
 uv run pytest tests/test_quote.py
 ```
 
-GREENになりました。
-
-次はTODOリストの「割引適用時の端数は切り捨てされること」を検証します。前のステップで `//` に変更済みですが、端数が発生するケースを明示的にテストしておきましょう。
-
-```python
-import pytest
-
-from src.quote import Quote
-
-
-class TestQuote:
-    @pytest.mark.parametrize("plan, expected", [("basic", 980), ("standard", 1980), ("premium", 4980)])
-    def test_プランに応じた月額料金が正しいこと(self, plan, expected):
-        quote = Quote(plan=plan, months=1)
-        assert quote.monthly_price == expected
-
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
-        quote = Quote(plan="standard", months=20)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 36432
-
-    def test_12ヶ月未満は割引なしであること(self):
-        quote = Quote(plan="standard", months=1)
-        assert quote.discount_rate == 0
-        assert quote.total_price == 1980
-
-    def test_24ヶ月以上は14パーセント割引されること(self):
-        quote = Quote(plan="standard", months=24)
-        assert quote.discount_rate == 14
-        assert quote.total_price == 40867
-
-    def test_割引適用時の端数は切り捨てされること(self):
-        # 1,980 × 12 × 92 ÷ 100 = 21,859.2 → 切り捨てで 21,859
-        quote = Quote(plan="standard", months=12)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 21859
-```
-
-##### GREEN
-
-```bash
-uv run pytest tests/test_quote.py
-```
-
-前のステップで `//`（切り捨て除算）に変更済みのため、追加の実装なしでGREENになります。
-
-##### REFACTOR
-
-ここで `__init__` を見てみましょう。料金の取得・割引率の判定・合計の計算と、1つのメソッドに3つの責務が混在しています。テストがGREENのうちにリファクタリングしましょう。
+GREENになりました。ここで `__init__` を見てみましょう。料金の取得・割引率の判定・合計の計算と、1つのメソッドに3つの責務が混在しています。テストがGREENのうちにリファクタリングしましょう。
 
 **リファクタリング**: 各責務を凝集度の高いクラス・関数に分離します。
 
@@ -575,7 +365,7 @@ class Quote:
 
     def _calc_total(self) -> int:
         """月額 × 月数 に割引率を適用した合計金額を整数で返す。"""
-        return self._monthly_price * self._months * (100 - self._discount_rate.value) // 100
+        return self._monthly_price * self._months * (100 - self._discount_rate.value) / 100
 
     @property
     def plan(self) -> str:
@@ -613,26 +403,10 @@ class TestQuote:
         quote = Quote(plan=plan, months=1)
         assert quote.monthly_price == expected
 
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
+    def test_standardプラン20ヶ月の場合8パーセント割引されること(self):
         quote = Quote(plan=Plan.STANDARD, months=20)
         assert quote.discount_rate == 8
         assert quote.total_price == 36432
-
-    def test_12ヶ月未満は割引なしであること(self):
-        quote = Quote(plan=Plan.STANDARD, months=1)
-        assert quote.discount_rate == 0
-        assert quote.total_price == 1980
-
-    def test_24ヶ月以上は14パーセント割引されること(self):
-        quote = Quote(plan=Plan.STANDARD, months=24)
-        assert quote.discount_rate == 14
-        assert quote.total_price == 40867
-
-    def test_割引適用時の端数は切り捨てされること(self):
-        # 1,980 × 12 × 92 ÷ 100 = 21,859.2 → 切り捨てで 21,859
-        quote = Quote(plan=Plan.STANDARD, months=12)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 21859
 ```
 
 ```bash
@@ -646,36 +420,53 @@ GREENのままです。リファクタリング成功です。`Quote` は `Plan`
 ```python
 import pytest
 
+    def test_不正なプランの場合ValueErrorが発生すること(self):
+        with pytest.raises(ValueError):
+            Plan("free")
+```
+
+```bash
+uv run pytest tests/test_quote.py
+```
+
+`Plan` は `Enum` を継承しているため、不正な値が渡されると自動的に `ValueError` を送出します。追加の実装なしでGREENになります。
+
+残りのTODO（「12ヶ月未満は割引なしであること」「24ヶ月以上は14%割引されること」「割引適用時の端数は切り捨てされること」）も同様にテストしていきましょう。境界値（割引が切り替わる11/12ヶ月、23/24ヶ月）を網羅することがポイントです。割引適用時に端数が発生するケース（例: 1,980 × 12 × 92 ÷ 100 = 21,859.2）では、現在の `/ 100` だと小数になりテストが失敗します。`Quote._calc_total` の除算を `//`（切り捨て除算）に変更して 21,859 を返すようにしましょう。`pytest.mark.parametrize` を使うとテストケースを簡潔にまとめられます。最終的なテストコードは以下のようになります。
+
+```python
+import pytest
+
 from src.plan import Plan
 from src.quote import Quote
 
 
 class TestQuote:
-    @pytest.mark.parametrize("plan, expected", [(Plan.BASIC, 980), (Plan.STANDARD, 1980), (Plan.PREMIUM, 4980)])
-    def test_プランに応じた月額料金が正しいこと(self, plan, expected):
+    @pytest.mark.parametrize(
+        "plan, expected_monthly",
+        [
+            (Plan.BASIC, 980),
+            (Plan.STANDARD, 1980),
+            (Plan.PREMIUM, 4980),
+        ],
+    )
+    def test_プランに応じた月額料金が正しいこと(self, plan, expected_monthly):
         quote = Quote(plan=plan, months=1)
-        assert quote.monthly_price == expected
+        assert quote.monthly_price == expected_monthly
 
-    def test_12ヶ月以上24ヶ月未満は8パーセント割引されること(self):
-        quote = Quote(plan=Plan.STANDARD, months=20)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 36432
-
-    def test_12ヶ月未満は割引なしであること(self):
-        quote = Quote(plan=Plan.STANDARD, months=1)
-        assert quote.discount_rate == 0
-        assert quote.total_price == 1980
-
-    def test_24ヶ月以上は14パーセント割引されること(self):
-        quote = Quote(plan=Plan.STANDARD, months=24)
-        assert quote.discount_rate == 14
-        assert quote.total_price == 40867
-
-    def test_割引適用時の端数は切り捨てされること(self):
-        # 1,980 × 12 × 92 ÷ 100 = 21,859.2 → 切り捨てで 21,859
-        quote = Quote(plan=Plan.STANDARD, months=12)
-        assert quote.discount_rate == 8
-        assert quote.total_price == 21859
+    @pytest.mark.parametrize(
+        "months, expected_discount, expected_total",
+        [
+            (1, 0, 1980),
+            (11, 0, 21780),
+            (12, 8, 21859),
+            (23, 8, 41896),
+            (24, 14, 40867),
+        ],
+    )
+    def test_契約月数に応じた割引が適用されること(self, months, expected_discount, expected_total):
+        quote = Quote(plan=Plan.STANDARD, months=months)
+        assert quote.discount_rate == expected_discount
+        assert quote.total_price == expected_total
 
     @pytest.mark.parametrize("invalid_plan", ["free", "enterprise"])
     def test_不正なプランの場合ValueErrorが発生すること(self, invalid_plan):
@@ -683,13 +474,9 @@ class TestQuote:
             Plan(invalid_plan)
 ```
 
-##### GREEN
-
 ```bash
 uv run pytest tests/test_quote.py
 ```
-
-`Plan` は `Enum` を継承しているため、不正な値が渡されると自動的に `ValueError` を送出します。追加の実装なしでGREENになります。
 
 すべてGREENになればUTは完了です。todo.mdのチェックを更新しておきましょう。
 
@@ -721,19 +508,42 @@ MySQLコンテナを起動しておきましょう。
 docker compose up -d --wait
 ```
 
-TODOリストの「POST /quotes で見積もりが作成されDBに保存されること」から始めます。`tests/test_api.py` にテストコードを書きましょう。
-
-`tests/conftest.py` にはテストごとにテーブルを作成・クリーンアップするフィクスチャが用意されているので、テストコードの実装に集中できます。
+TODOリストの「POST /quotes で見積もりが作成されDBに保存されること」から始めます。`tests/test_api.py` にテストコードを書きましょう。フィクスチャでテストごとにテーブルを作成し、テスト後に削除することでテスト間の干渉を防ぎます。コネクションは `try/finally` で確実にcloseします。
 
 ```python
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 from src.database import get_connection
 from src.main import app
 
+SCHEMA_SQL = Path(__file__).resolve().parent.parent / "sql" / "schema.sql"
+
+
+@pytest.fixture(autouse=True)
+def setup_db():
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(SCHEMA_SQL.read_text())
+            cursor.execute("DELETE FROM quotes")
+        conn.commit()
+    finally:
+        conn.close()
+    yield
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("DROP TABLE IF EXISTS quotes")
+        conn.commit()
+    finally:
+        conn.close()
+
 
 class TestCreateQuote:
-    def test_POST_quotesで見積もりが作成されDBに保存されること(self):
+    def test_POST_quotesで見積もりが作成できる(self):
         # Arrange
         client = TestClient(app)
 
@@ -767,55 +577,20 @@ class TestCreateQuote:
 - レスポンスの検証だけでなく、DBの状態（ふるまい）も検証している
 - `try/finally` でコネクションを確実にcloseし、例外発生時のリソースリークを防止
 
-##### RED
-
 ```bash
 uv run pytest tests/test_api.py
 ```
 
 REDになります。`src/main.py` のエンドポイントがまだ未実装（`pass`）だからです。
 
-##### GREEN
-
 雛形（リクエスト/レスポンスモデル、エンドポイントの定義）は事前に用意されているので、`create_quote` 関数の中身を実装しましょう。まずはDB保存処理も含めてベタ書きで実装します。
 
-`src/main.py` を以下のように書き換えます。
-
 ```python
-from typing import Literal
-
-import pymysql
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel, Field
-
-from src.database import get_db
 from src.plan import Plan
 from src.quote import Quote
 
-app = FastAPI()
+# ... 既存のimport・モデル定義・エンドポイント定義は省略 ...
 
-
-class QuoteRequest(BaseModel):
-    """見積もり作成リクエストのスキーマ。"""
-
-    customer_name: str
-    plan: Literal["basic", "standard", "premium"]
-    months: int = Field(gt=0)
-
-
-class QuoteResponse(BaseModel):
-    """見積もり作成レスポンスのスキーマ。"""
-
-    id: int
-    customer_name: str
-    plan: str
-    months: int
-    monthly_price: int
-    discount_rate: int
-    total_price: int
-
-
-@app.post("/quotes", status_code=201, response_model=QuoteResponse)
 def create_quote(
     req: QuoteRequest, conn: pymysql.Connection = Depends(get_db)
 ) -> QuoteResponse:
@@ -859,7 +634,7 @@ uv run pytest tests/test_api.py
 
 GREENになりました。テストが通る状態を維持したまま、リファクタリングに進みます。
 
-##### REFACTOR
+##### REFACTOR — DBアクセスの分離
 
 SQLの実行をハンドラから分離し、関心の分離を実現します。DBアクセスを担当する `src/repository.py` を作成しましょう。
 
@@ -889,44 +664,11 @@ def save_quote(conn: pymysql.Connection, customer_name: str, quote: Quote) -> in
 
 `src/main.py` の `create_quote` を `save_quote` を使うように変更します。
 
-`src/main.py` を以下のように書き換えます。
-
 ```python
-from typing import Literal
-
-import pymysql
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel, Field
-
-from src.database import get_db
-from src.plan import Plan
-from src.quote import Quote
 from src.repository import save_quote
 
-app = FastAPI()
+# ... 既存のimport・モデル定義・エンドポイント定義は省略 ...
 
-
-class QuoteRequest(BaseModel):
-    """見積もり作成リクエストのスキーマ。"""
-
-    customer_name: str
-    plan: Literal["basic", "standard", "premium"]
-    months: int = Field(gt=0)
-
-
-class QuoteResponse(BaseModel):
-    """見積もり作成レスポンスのスキーマ。"""
-
-    id: int
-    customer_name: str
-    plan: str
-    months: int
-    monthly_price: int
-    discount_rate: int
-    total_price: int
-
-
-@app.post("/quotes", status_code=201, response_model=QuoteResponse)
 def create_quote(
     req: QuoteRequest, conn: pymysql.Connection = Depends(get_db)
 ) -> QuoteResponse:
@@ -951,46 +693,10 @@ uv run pytest tests/test_api.py
 
 リファクタリング後もGREENのままです。ハンドラはビジネスロジックの組み立てに専念し、SQL実行は `repository.save_quote` に委譲する構造になりました。
 
-##### RED
-
-次はTODOリストの「サーバー内部エラー時に500エラーが返ること」を検証します。`tests/test_api.py` を以下のように書き換えましょう。
+次はTODOリストの「サーバー内部エラー時に500エラーが返ること」を検証します。テストクラスにテストを追加しましょう。
 
 ```python
-from fastapi.testclient import TestClient
-
-from src.database import get_connection
-from src.main import app
-
-
-class TestCreateQuote:
-    def test_POST_quotesで見積もりが作成されDBに保存されること(self):
-        # Arrange
-        client = TestClient(app)
-
-        # Act
-        response = client.post(
-            "/quotes", json={"customer_name": "田中太郎", "plan": "standard", "months": 12}
-        )
-
-        # Assert
-        data = response.json()
-        assert response.status_code == 201
-        assert "id" in data
-        assert data["monthly_price"] == 1980
-        assert data["discount_rate"] == 8
-        assert data["total_price"] == 21859
-
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM quotes WHERE id = %s", (data["id"],))
-                row = cursor.fetchone()
-        finally:
-            conn.close()
-        assert row is not None
-        assert row["total_price"] == 21859
-
-    def test_サーバー内部エラー時に500エラーが返ること(self):
+    def test_DBエラー時に500エラーが返ること(self):
         # Arrange: テーブルを削除してDBエラーを発生させる
         conn = get_connection()
         try:
@@ -1014,71 +720,12 @@ class TestCreateQuote:
 uv run pytest
 ```
 
-REDになります。DBエラー（`pymysql.Error`）が未処理のまま送出されるためです。
-
-##### GREEN
-
-`src/main.py` を以下のように書き換えて、DBエラーを500レスポンスに変換するカスタム例外ハンドラを追加しましょう。
+REDになります。DBエラー（`pymysql.Error`）が未処理のまま送出されるためです。`src/main.py` にカスタム例外ハンドラを追加して、DBエラーを500レスポンスに変換しましょう。
 
 ```python
-from typing import Literal
-
-import pymysql
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel, Field
-from starlette.requests import Request
-from starlette.responses import JSONResponse
-
-from src.database import get_db
-from src.plan import Plan
-from src.quote import Quote
-from src.repository import save_quote
-
-app = FastAPI()
-
-
-class QuoteRequest(BaseModel):
-    """見積もり作成リクエストのスキーマ。"""
-
-    customer_name: str
-    plan: Literal["basic", "standard", "premium"]
-    months: int = Field(gt=0)
-
-
-class QuoteResponse(BaseModel):
-    """見積もり作成レスポンスのスキーマ。"""
-
-    id: int
-    customer_name: str
-    plan: str
-    months: int
-    monthly_price: int
-    discount_rate: int
-    total_price: int
-
-
 @app.exception_handler(pymysql.Error)
 async def db_exception_handler(request: Request, exc: pymysql.Error) -> JSONResponse:
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
-
-@app.post("/quotes", status_code=201, response_model=QuoteResponse)
-def create_quote(
-    req: QuoteRequest, conn: pymysql.Connection = Depends(get_db)
-) -> QuoteResponse:
-    """見積もりを作成してDBに保存し、結果を返す。"""
-    quote = Quote(plan=Plan(req.plan), months=req.months)
-    quote_id = save_quote(conn, req.customer_name, quote)
-
-    return QuoteResponse(
-        id=quote_id,
-        customer_name=req.customer_name,
-        plan=quote.plan,
-        months=quote.months,
-        monthly_price=quote.monthly_price,
-        discount_rate=quote.discount_rate,
-        total_price=quote.total_price,
-    )
 ```
 
 ```bash
@@ -1087,65 +734,9 @@ uv run pytest
 
 GREENになりました。500エラーのテストではモックを使わず、テーブルを削除して実際のDBエラーを再現しています。
 
-##### GREEN
-
-次はTODOリストの「不正なリクエストで422エラーが返ること」を検証します。不正なプラン・不正な月数・フィールド欠落の3パターンをテストしましょう。`tests/test_api.py` を以下のように書き換えます。
+次はTODOリストの「不正なリクエストで422エラーが返ること」を検証します。不正なプラン・不正な月数・フィールド欠落の3パターンをテストしましょう。
 
 ```python
-import pytest
-from fastapi.testclient import TestClient
-
-from src.database import get_connection
-from src.main import app
-
-
-class TestCreateQuote:
-    def test_POST_quotesで見積もりが作成されDBに保存されること(self):
-        # Arrange
-        client = TestClient(app)
-
-        # Act
-        response = client.post(
-            "/quotes", json={"customer_name": "田中太郎", "plan": "standard", "months": 12}
-        )
-
-        # Assert
-        data = response.json()
-        assert response.status_code == 201
-        assert "id" in data
-        assert data["monthly_price"] == 1980
-        assert data["discount_rate"] == 8
-        assert data["total_price"] == 21859
-
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM quotes WHERE id = %s", (data["id"],))
-                row = cursor.fetchone()
-        finally:
-            conn.close()
-        assert row is not None
-        assert row["total_price"] == 21859
-
-    def test_サーバー内部エラー時に500エラーが返ること(self):
-        # Arrange: テーブルを削除してDBエラーを発生させる
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("DROP TABLE quotes")
-            conn.commit()
-        finally:
-            conn.close()
-
-        # Act
-        client = TestClient(app)
-        response = client.post(
-            "/quotes", json={"customer_name": "田中太郎", "plan": "standard", "months": 12}
-        )
-
-        # Assert
-        assert response.status_code == 500
-
     @pytest.mark.parametrize(
         "body",
         [
@@ -1207,4 +798,3 @@ Claude Codeなどのコーディングエージェントの登場で、自動テ
 - [単体テストの考え方/使い方](https://www.amazon.co.jp/%E5%8D%98%E4%BD%93%E3%83%86%E3%82%B9%E3%83%88%E3%81%AE%E8%80%83%E3%81%88%E6%96%B9-%E4%BD%BF%E3%81%84%E6%96%B9-Vladimir-Khorikov/dp/4839981728)
 - [テスト駆動開発](https://www.amazon.co.jp/%E3%83%86%E3%82%B9%E3%83%88%E9%A7%86%E5%8B%95%E9%96%8B%E7%99%BA-Kent-Beck/dp/4274217884/ref=pd_sbs_d_sccl_1_1/356-7703089-6525043?pd_rd_w=NOpq7&content-id=amzn1.sym.d9975236-2c6f-40f8-8a79-8a86a96a4ad2&pf_rd_p=d9975236-2c6f-40f8-8a79-8a86a96a4ad2&pf_rd_r=15J2YJ1C4ZKKCKXRTWYW&pd_rd_wg=4dFJk&pd_rd_r=ef551665-559e-4a9d-a162-320dff6ecad4&pd_rd_i=4274217884&psc=1)
 - [【翻訳】テスト駆動開発の定義](https://t-wada.hatenablog.jp/entry/canon-tdd-by-kent-beck)
-- [ドメイン駆動設計をはじめよう](https://www.amazon.co.jp/%E3%83%89%E3%83%A1%E3%82%A4%E3%83%B3%E9%A7%86%E5%8B%95%E8%A8%AD%E8%A8%88%E3%82%92%E3%81%AF%E3%81%98%E3%82%81%E3%82%88%E3%81%86-%E2%80%95%E3%82%BD%E3%83%95%E3%83%88%E3%82%A6%E3%82%A7%E3%82%A2%E3%81%AE%E5%AE%9F%E8%A3%85%E3%81%A8%E4%BA%8B%E6%A5%AD%E6%88%A6%E7%95%A5%E3%82%92%E7%B5%90%E3%81%B3%E3%81%A4%E3%81%91%E3%82%8B%E5%AE%9F%E8%B7%B5%E6%8A%80%E6%B3%95-Vlad-Khononov/dp/481440073X?source=ps-sl-shoppingads-lpcontext&ref_=fplfs&ref_=fplfs&psc=1&smid=AN1VRQENFRJN5)
