@@ -9,6 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: docker compose up -d --wait
+      - run: docker compose -f .devcontainer/docker-compose.yml up db -d --wait
       - run: uv sync
       - run: uv run pytest
